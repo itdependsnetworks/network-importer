@@ -3,3 +3,4 @@ pynetbox
 nornir
 pandas
 termcolor
+netmiko
