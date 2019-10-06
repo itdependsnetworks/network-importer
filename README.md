@@ -1,12 +1,12 @@
-The network importer is a tool to import/synchronize an existing network with a Network Source of Truth, it's designed to be idempotent and by default it's only showing the difference between the running network and the central database. 
+The network importer is a tool to import/synchronize an existing network with a Network Source of Truth, it's designed to be idempotent and by default it's only showing the difference between the running network and the central database.
 
-The main use cases for the network importer 
+The main use cases for the network importer
  - Import an existing network into a SOT (Netbox) as a first step to automate a brownfield network
  - Check the differences between the running network and the Source of Truth
 
-# How to use 
+# How to use
 
-The network importer can run either in `check` mode or in `apply` mode. 
+The network importer can run either in `check` mode or in `apply` mode.
  - In `check` mode, no modification will be made to the SOT, the differences will be printed on the screen
  - in `apply` mode, the SOT will be updated will all interfaces, IPs, vlans etc
 
@@ -25,7 +25,7 @@ BATFISH_ADDRESS (default: localhost)
 
 # How does it work
 
-The network importer is using [batfish](https://github.com/batfish/batfish) to parse the configurations extract a vendor neutral data model. 
+The network importer is using [batfish](https://github.com/batfish/batfish) to parse the configurations extract a vendor neutral data model.
 All devices supported by batfish should be supported by the `network-importer`
 
 # inputs
@@ -41,6 +41,14 @@ All devices supported by batfish should be supported by the `network-importer`
 - Try to connect to the devices using nornit to pull the LLDP informations and the configs
 - Parse the configs using Batfish
 - If devices are not in netbox, attempt to create them with the information provided in the inventory
+
+## *Bare* Inventory only (partially supported)
+- Connect to the device and perform autodetection of the device type
+- Try to connect to the devices using nornit to pull the LLDP informations and the configs
+- Parse the configs using Batfish
+- If devices are not in netbox, attempt to create them with the information provided in the inventory
+
+*Bare* Inventory is only a list of IP's and credentials
 
 # disclaimer / Assumption
 
