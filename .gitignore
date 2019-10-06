@@ -1,5 +1,6 @@
 network_importer.egg-info
 bin/
+!bin/network-importer
 lib/
 pyvenv.cfg
 test/
