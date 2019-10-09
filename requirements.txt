@@ -1,5 +1,5 @@
 pynetbox
-# git+https://github.com/batfish/pybatfish.git
+git+git://github.com/batfish/pybatfish.git
 nornir
 pandas
 termcolor
