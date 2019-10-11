@@ -69,6 +69,44 @@ class CustomFormatter(
     pass
 
 
+class NetboxConfig():
+    def __init__(self, address, token):
+        self.address = address
+        self.token = token
+
+        self._validate_params()
+        self._test_connection()
+
+    def _validate_params(self):
+        if not self.address:
+            raise Exception("Please provide the location of the netbox server using the environment variables NETBOX_ADDRESS ")
+        elif not self.token:
+            raise Exception("Please provide a valid netbox token using the environment variables NETBOX_TOKEN ")
+
+    def _test_connection(self):
+        nb = pynetbox.api(self.address, token=self.token)
+        try:
+            nb.dcim.devices.get(name="csr1")
+        except requests.exceptions.ConnectionError:
+            logger.critical(
+                "Unable to connect to the netbox server, please check the NETBOX_ADDRESS env variable"
+            )
+            sys.exit(1)
+        except pynetbox.core.query.RequestError as e:
+            print(e)
+            logger.critical(
+                "Unable to complete a query to the netbox server, please check the env variables"
+            )
+            sys.exit(1)
+        except requests.exceptions.RequestException as e:
+            logger.critical(
+                "Unable to connect to the netbox server, please check the address and the token"
+            )
+            print(e)
+            sys.exit(1)
+
+
+
 def parse_args(args=sys.argv[1:]):
     """Parse arguments."""
     parser = argparse.ArgumentParser(
@@ -123,6 +161,7 @@ def jinja_filter_toyaml_list(value):
 def jinja_filter_toyaml_dict(value):
     return yaml.dump(value, default_flow_style=False)
 
+
 def main():
 
     module_path = os.path.dirname(network_importer.__file__)
@@ -131,21 +170,7 @@ def main():
     options = parse_args()
 
     ## Check if all environment variables have been provided
-
-    NETBOX_ADDR = os.environ.get("NETBOX_ADDRESS", None)
-    NETBOX_TOKEN = os.environ.get("NETBOX_TOKEN", None)
     BATFISH_ADDR = os.environ.get("BATFISH_ADDRESS", "localhost")
-
-    if not NETBOX_ADDR:
-        print(
-            "Please provide the location of the netbox server using the environment variables NETBOX_ADDRESS "
-        )
-        exit()
-    elif not NETBOX_TOKEN:
-        print(
-            "Please provide a valid netbox token using the environment variables NETBOX_TOKEN "
-        )
-        exit()
 
     ## Setup logging
     logging.getLogger("pybatfish").setLevel(logging.ERROR)
@@ -182,30 +207,8 @@ def main():
     # ------------------------------------------------------------
     # Initialize Netbox, and pull existing devices
     # ------------------------------------------------------------
-    nb = pynetbox.api(NETBOX_ADDR, token=NETBOX_TOKEN)
-    try:
-        nb.dcim.devices.get(name="notpresent")
-    except requests.exceptions.ConnectionError:
-        logger.critical(
-            "Unable to connect to the netbox server, please check the NETBOX_ADDRESS env variable"
-        )
-        sys.exit(1)
-    except pynetbox.core.query.RequestError as e:
-        print(e)
-        logger.critical(
-            "Unable to complete a query to the netbox server, please check the env variables"
-        )
-        sys.exit(1)
-    except requests.exceptions.RequestException as e:
-        logger.critical(
-            "Unable to connect to the netbox server, please check the address and the token"
-        )
-        print(e)
-        sys.exit(1)
-
-    # ------------------------------------------------------------
-    # Initialize Netbox, and pull existing devices
-    # ------------------------------------------------------------
+    nb_config = NetboxConfig(os.environ.get("NETBOX_ADDRESS"), os.environ.get("NETBOX_TOKEN"))
+    nb = pynetbox.api(nb_config.address, token=nb_config.token)
     # TODO manage exception for Nornir and the validity of the inventory file
     if options.inventory:
         nr = InitNornir(
