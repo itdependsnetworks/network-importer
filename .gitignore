@@ -6,3 +6,4 @@ pyvenv.cfg
 test/
 properties.env
 configs/
+inventory
