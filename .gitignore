@@ -4,3 +4,5 @@ bin/
 lib/
 pyvenv.cfg
 test/
+properties.env
+configs/
