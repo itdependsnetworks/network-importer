@@ -106,7 +106,6 @@ class NetboxConfig():
             sys.exit(1)
 
 
-
 def parse_args(args=sys.argv[1:]):
     """Parse arguments."""
     parser = argparse.ArgumentParser(
@@ -252,23 +251,18 @@ def main():
         if options.limit and dev.name != options.limit:
             continue
 
-        nb_dev = nb.dcim.devices.get(name=dev.name)
-
         logger.info(f"Processing {dev.name} data, local and remote .. ")
 
-        if nb_dev:
-            dev.remote = nb_dev
-            dev.exist_remote = True
-
+        if dev.exist_remote:
             ## Check if site and vlans information are already in cache
-            if nb_dev.site.slug not in sites.keys():
-                site = NetworkImporterSite(name=nb_dev.site.slug, nb=nb)
+            if dev.remote.site.slug not in sites.keys():
+                site = NetworkImporterSite(name=dev.remote.site.slug, nb=nb)
                 sites[site.name] = site
                 dev.site = site
                 logger.debug(f"Created site {site.name}")
 
             else:
-                dev.site = sites[nb_dev.site.slug]
+                dev.site = sites[dev.remote.site.slug]
 
         if options.inventory and bf_dev.Hostname in nr.inventory.hosts.keys():
             dev.nr = nr.inventory.hosts[dev.name]

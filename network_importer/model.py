@@ -60,6 +60,7 @@ class NetworkImporterDevice(object):
         self._cache_ips = None
 
         if self.nb:
+            self._get_remote()
             self._get_remote_interfaces_list()
             self._get_remote_ips_list()
 
@@ -153,6 +154,13 @@ class NetworkImporterDevice(object):
 
         return self.interfaces[intf_name].add_ip(ip)
 
+    def _get_remote(self):
+        """
+        Get the remote device object from Netbox.
+        """
+        self.remote = self.nb.dcim.devices.get(name=self.name)
+        self.exist_remote = True
+
     def _get_remote_interfaces_list(self):
         """
         Query Netbox for the remote interfaces and keep them in cache
@@ -235,7 +243,7 @@ class NetworkImporterInterface(object):
 
     def get_netbox_properties(self):
         """
-        Get a dict with all interface properties in Netbox format 
+        Get a dict with all interface properties in Netbox format
 
         Input: None
         Output: Dictionnary of properties reasy to pass to netbox
