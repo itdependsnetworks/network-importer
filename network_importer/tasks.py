@@ -254,7 +254,7 @@ def collect_vlans_info(task: Task, update_cache=True, use_cache=False) -> Result
 
     results = None
 
-    if task.host.platform in ["ios", "nxos"]:
+    if task.host.platform in ["ios", "nxos", "cisco_ios", "cisco_nxos"]:
         try:
             results = task.run(
                 task=netmiko_send_command, command_string="show vlan", use_genie=True
@@ -273,7 +273,7 @@ def collect_vlans_info(task: Task, update_cache=True, use_cache=False) -> Result
         for vid, data in results[0].result["vlans"].items():
             vlans.append(dict(name=data["name"], id=data["vlan_id"]))
 
-    elif task.host.platform == "eos":
+    elif task.host.platform in ["eos", "arista_eos"]:
 
         nr_device = task.host.get_connection("napalm", task.nornir.config)
         eos_device = nr_device.device
