@@ -746,6 +746,7 @@ class NetworkImporterInterface(NetworkImporterObjBase):
 
         if not self.local:
             self.local = Interface(name=self.name)
+            self.local.device_name = self.device_name
 
         is_physical = is_interface_physical(self.name)
         is_lag = is_interface_lag(self.name)
