@@ -27,5 +27,7 @@ def get_driver(dtype):
         and dtype in DRIVERS[backend][version].keys()
     ):
         return DRIVERS[backend][version][dtype]
-
-    return DRIVERS[backend]["default"][dtype]
+    elif backend == "netbox" and version > 2.6:
+    	return DRIVERS[backend]['2.7'][dtype]
+    else:
+    	return DRIVERS[backend]["default"][dtype]
