@@ -145,7 +145,7 @@ class Cable(DSyncModel):
         if not kwargs["device_a_name"] or not kwargs["device_z_name"]:
             raise ValueError("device_a_name and device_z_name are mandatory and must not be None")
 
-        new_kwargs = copy.deepcopy(kwargs)
+        new_kwargs = copy.deepcopy(dict(kwargs))
         devices = [kwargs["device_a_name"], kwargs["device_z_name"]]
         if sorted(devices) != devices:
             new_kwargs["device_a_name"] = kwargs["device_z_name"]
