@@ -6,16 +6,19 @@ services:
     build:
       context: "."
       dockerfile: "Dockerfile"
+      args:
+        PYTHON_VER: "3.7.7"
     stdin_open: true
     tty: true
-    env_file:
-      - ".env"
     depends_on:
       - "batfish"
     volumes:
       - "./network_importer:/source/network_importer"
       - "./examples:/source/examples"
       - "./tests:/source/tests"
+    # UNCOMMENT BELOW FOR ENV FILE UPDATES
+    # env_file:
+    #   - ".env"
   batfish:
     container_name: "batfish-test"
     image: "batfish/batfish:2020.10.08.667"
