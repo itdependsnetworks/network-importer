@@ -40,7 +40,6 @@ LOGGER = logging.getLogger("network-importer")
 # pylint: disable=too-many-arguments
 
 
-@click.command()
 @click.version_option()
 @click.option(
     "--config",
@@ -65,7 +64,7 @@ LOGGER = logging.getLogger("network-importer")
     "--debug", is_flag=True, help="Keep the script in interactive mode once finished for troubleshooting", hidden=True
 )
 @click.option("--update-configs", is_flag=True, help="Pull the latest configs from the devices")
-@click.option("--inventory", is_flag=True, help="Display network inventory")
+@click.group()
 def main(config_file, limit, diff, apply, check, debug, update_configs, inventory):
     """Main CLI command for the network_importer."""
     config.load(config_file_name=config_file)
@@ -106,34 +105,6 @@ def main(config_file, limit, diff, apply, check, debug, update_configs, inventor
 
     ni.init(limit=limit)
 
-    # # ------------------------------------------------------------------------------------
-    # # Update Remote if apply is enabled
-    # # ------------------------------------------------------------------------------------
-    if inventory:
-        if limit:
-            table = Table(title=f"Device Inventory (limit:{limit})")
-        else:
-            table = Table(title="Device Inventory (all)")
-
-        table.add_column("Device", style="cyan", no_wrap=True)
-        table.add_column("Groups", style="magenta")
-        table.add_column("Platform", style="magenta")
-        table.add_column("Reachable")
-        table.add_column("Reason")
-
-        for hostname, host in ni.nornir.inventory.hosts.items():
-            if host.data["is_reachable"]:
-                is_reachable = "[green]True"
-                reason = None
-            else:
-                is_reachable = "[red]False"
-                reason = f"[red]{host.data['not_reachable_reason']}"
-
-            table.add_row(hostname, ",".join(host.groups), host.data["vendor"], is_reachable, reason)
-
-        console = Console()
-        console.print(table)
-
     if apply:
         ni.sync()
 
@@ -148,6 +119,57 @@ def main(config_file, limit, diff, apply, check, debug, update_configs, inventor
     LOGGER.info("Execution finished, processed %s device(s)", perf.TIME_TRACKER.nbr_devices)
     if debug:
         pdb.set_trace()
+
+
+@click.option(
+    "--config",
+    "config_file",
+    default="network_importer.toml",
+    help="Network Importer Configuration file (TOML format)",
+    type=str,
+    show_default=True,
+)
+@click.option(
+    "--limit",
+    default=False,
+    help="limit the execution on a specific device or group of devices --limit=device1 or --limit='site=sitea' ",
+    type=str,
+)
+@main.command()
+def inventory(config_file, limit):
+    """Main CLI command for the network_importer."""
+    config.load(config_file_name=config_file)
+
+    if limit:
+        table = Table(title=f"Device Inventory (limit:{limit})")
+    else:
+        table = Table(title="Device Inventory (all)")
+
+    filters = {}
+    build_filter_params(config.SETTINGS.inventory.filter.split((",")), filters)
+
+    ni = NetworkImporter()
+    ni.build_inventory(limit=limit)
+    # ni.update_configurations()
+
+    table.add_column("Device", style="cyan", no_wrap=True)
+    table.add_column("Platform", style="magenta")
+    table.add_column("Hostname")
+    table.add_column("Reachable")
+    table.add_column("Reason")
+
+    for hostname, host in ni.nornir.inventory.hosts.items():
+        if host.data["is_reachable"]:
+            is_reachable = "[green]True"
+            reason = None
+        else:
+            is_reachable = "[red]False"
+            reason = f"[red]{host.data['not_reachable_reason']}"
+
+        table.add_row(hostname, host.data["vendor"], host.hostname, is_reachable, reason)
+
+    console = Console()
+    console.print(table)
 
 
 if __name__ == "__main__":
